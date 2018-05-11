@@ -1,0 +1,22 @@
+{
+  "name": "photo-mover",
+  "version": "1.0.0",
+  "description": "Moves photos based from exif date",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kpfromer/photo-mover.git"
+  },
+  "author": "Kyle Pfromer",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/kpfromer/photo-mover/issues"
+  },
+  "homepage": "https://github.com/kpfromer/photo-mover#readme",
+  "dependencies": {
+    "exiftool": "0.0.3"
+  }
+}
