@@ -4,6 +4,7 @@
   "description": "Moves photos based from exif date",
   "main": "dist/index.js",
   "scripts": {
+    "start": "ts-node -r tsconfig-paths/register src/main.ts",
     "start:dev": "nodemon",
     "test": "jest"
   },
@@ -19,7 +20,9 @@
   "homepage": "https://github.com/kpfromer/photo-mover#readme",
   "dependencies": {
     "exiftool": "0.0.3",
+    "exiftool-vendored": "^4.24.0",
     "fs-extra": "^6.0.1",
+    "lodash": "^4.17.10",
     "mkdirp": "^0.5.1",
     "moment": "^2.22.1",
     "mz": "^2.7.0"
