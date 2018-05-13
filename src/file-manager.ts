@@ -1,17 +1,25 @@
 import * as mkdirp from 'mkdirp';
-import * as fs from 'fs';
 import { promisify } from 'util';
 import * as moment from 'moment';
 import { ExifTool } from 'exiftool-vendored';
-import {get} from 'lodash';
+import { get } from 'lodash';
+import { basename, dirname, join } from 'path';
+import * as fs from 'fs';
 
 const exiftool = new ExifTool();
 
 const makeAllDirsInPath = promisify(mkdirp);
-const readdir = promisify(fs.readdir);
 
-export const getAllFilesInFolder = async (folderLoc: string): Promise<string[]> => {
-  return await readdir(folderLoc);
+export const getAllFiles = (dir: string, ignore: string[] = []) => {
+  return fs.readdirSync(dir).reduce((files, file) => {
+    // if (junk.not(file)) {
+      const name = join(dir, file);
+      const isDirectory = fs.statSync(name).isDirectory();
+      return isDirectory ? [...files, ...getAllFiles(name)] : [...files, name];
+    // } else {
+    //   return [...files];
+    // }
+  }, []);
 };
 
 export const removeEndingSlash = (string: string): string => string.endsWith('/') ? string.slice(0, -1) : string;
@@ -20,7 +28,7 @@ export const copyToLocation = async (fileToCopyLoc: string, newLoc: string): Pro
 
   const finalLocation = removeEndingSlash(newLoc);
 
-  const dirsLeadUpTo = finalLocation.split('/').slice(0, -1).reduce((prevString, currDir) => `${prevString}${currDir}/`, '');
+  const dirsLeadUpTo = dirname(finalLocation);
 
   await makeAllDirsInPath(dirsLeadUpTo);
 
@@ -28,8 +36,6 @@ export const copyToLocation = async (fileToCopyLoc: string, newLoc: string): Pro
 };
 
 const moveFileBasedOnDate = async (fileLoc: string, folderDestination: string, folderStructure: string) => {
-
-  console.log(fileLoc);
 
   const metadata = await exiftool.read(fileLoc);
 
@@ -40,18 +46,11 @@ const moveFileBasedOnDate = async (fileLoc: string, folderDestination: string, f
   let date: string = get(metadata, 'DateTimeOriginal');
   const parsed = moment(date);
 
-  const fileName = removeEndingSlash(fileLoc).split('/').slice(-1)[0];
+  const fileName = basename(fileLoc);
 
-  if (!folderDestination.endsWith('/')) {
-    folderDestination += '/';
-  }
-
-  await copyToLocation(fileLoc, `${folderDestination}${parsed.format(folderStructure)}/${fileName}`)
+  await copyToLocation(fileLoc, join(folderDestination, parsed.format(folderStructure), fileName))
 };
 
 export const moveFolderOfImagesBasedOnDates = async (imageDir: string, finalDest: string, folderStructure: string = 'YYYY/MM/DD'): Promise<void> => {
-
-  for (const file of await this.getAllFilesInFolder(imageDir)) {
-    await moveFileBasedOnDate(`${imageDir}${file}`, finalDest, folderStructure);
-  }
+  await getAllFiles(imageDir).forEach(async image => await moveFileBasedOnDate(image, finalDest, folderStructure));
 };
